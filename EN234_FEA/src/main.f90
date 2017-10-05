@@ -35,8 +35,8 @@ program en234fea
 !  outfil = 'Output_files/Abaqus_uel_linear_elastic_3d.out'
 
 !   Linear elastic plate with a central hole using an ABAQUS UEL
-   infil = 'input_files/Abaqus_uel_holeplate_3d.in'
-   outfil = 'Output_files/Abaqus_uel_holeplate_3d.out'
+!   infil = 'input_files/Abaqus_uel_holeplate_3d.in'
+!   outfil = 'Output_files/Abaqus_uel_holeplate_3d.out'
 
 !   Simple 1 element demonstration of an ABAQUS VUEL
 !   The source code for the user element is in abaqus_vuel.for
@@ -47,8 +47,8 @@ program en234fea
 !   Runs an explicit dynamic simulation of a 3D plate with a central hole with and ABAQUS VUEL
 !   This simulation will take a few minutes to run (running in release mode will speed it up)
 !
-!   infil = 'input_files/Abaqus_uel_holeplate_3d.in'
-!   outfil = 'output_files/Abaqus_uel_holeplate_3d.out'
+!   infil = 'input_files/Abaqus_vuel_holeplate_3d.in'
+!   outfil = 'output_files/Abaqus_vuel_holeplate_3d.out'
    
 !  Tests an ABAQUS format UMAT subroutine (in abaqus_umat_elastic.for) with two 8 noded quadrilateral elements
 !   infil = 'input_files/Abaqus_umat_linear_elastic_3d.in'
@@ -66,8 +66,8 @@ program en234fea
 !   Homework 3: develop and test an ABAQUS user element implementing 2D linear elasticity with full integration
 
 !   Simple test of a 2D plane element
-!   infil = 'input_files/Abaqus_uel_linear_elastic_2d.in'
-!   outfil = 'Output_files/Abaqus_uel_linear_elastic_2d.out'
+   infil = 'input_files/Abaqus_uel_linear_elastic_2d.in'
+   outfil = 'Output_files/Abaqus_uel_linear_elastic_2d.out'
 
 !  Solve hole-in-a-plate problem with 4 noded quadrilateral elements
 !   infil = 'input_files/Abaqus_uel_holeplate_2d_quad4.in'
@@ -81,7 +81,7 @@ program en234fea
 !   infil = 'input_files/Abaqus_uel_holeplate_2d_tri3.in'
 !   outfil = 'Output_files/Abaqus_uel_holeplate_2d_tri3.out'
 
-!   infil = 'input_files/Abaqus_uel_holeplate_2d_tri6.in'
+!  infil = 'input_files/Abaqus_uel_holeplate_2d_tri6.in'
 !   outfil = 'Output_files/Abaqus_uel_holeplate_2d_tri6.out'
 
 !  HW5  Cantilever beam to test incompatible mode elements
