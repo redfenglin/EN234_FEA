@@ -182,102 +182,137 @@
 
       xi0 = 0.d0
 
+      If (JTYPE==1) then
+        do kint = 1, n_points
+          call abq_UEL_2D_shapefunctions(xi(1:2,kint),NNODE,N,dNdxi)
+          dxdxi = matmul(coords(1:2,1:NNODE),dNdxi(1:NNODE,1:2))
+          call abq_inverse_LU(dxdxi,dxidx,2)
+          dNdx(1:NNODE,1:2) = matmul(dNdxi(1:NNODE,1:2),dxidx)
+          determinant = dxdxi(1,1)*dxdxi(2,2)-dxdxi(1,2)*dxdxi(2,1)
+
+          B = 0.d0
+          B(1,1:2*NNODE-1:2) = dNdx(1:NNODE,1)
+          B(2,2:2*NNODE:2) = dNdx(1:NNODE,2)
+          B(4,1:2*NNODE-1:2) = dNdx(1:NNODE,2)
+          B(4,2:2*NNODE:2) = dNdx(1:NNODE,1)
+
+          strain = matmul(B(1:4,1:2*NNODE),U(1:2*NNODE))
+          stress = matmul(D,strain)
+          RHS(1:2*NNODE,1) = RHS(1:2*NNODE,1)
+     1     - matmul(transpose(B(1:4,1:2*NNODE)),stress(1:4))*
+     2                                           w(kint)*determinant
+
+          AMATRX(1:2*NNODE,1:2*NNODE) = AMATRX(1:2*NNODE,1:2*NNODE)
+     1     + matmul(transpose(B(1:4,1:2*NNODE)),
+     2              matmul(D,B(1:4,1:2*NNODE)))*w(kint)*determinant
+
+          ENERGY(2) = ENERGY(2)
+     1       + 0.5D0*dot_product(stress,strain)*w(kint)           ! Store the elastic strain energy
+
+          if (NSVARS>=n_points*4) then   ! Store stress at each integration point (if space was allocated to do so)
+              SVARS(4*kint-3:4*kint) = stress(1:4)
+          endif
+        end do
+        PNEWDT = 1.d0          ! This leaves the timestep unchanged (ABAQUS will use its own algorithm to determine DTIME)
+
+
+      elseif (JTYPE==2) then
     ! Process 1 : Calculate ktemp
-      do kint = 1, n_points
-        call abq_UEL_2D_shapefunctions(xi0(1:2,kint),NNODE,N0,dN0dxi0)
-        dxdxi0 = matmul(coords(1:2,1:NNODE),dN0dxi0(1:NNODE,1:2))
-        det0 = dxdxi0(1,1)*dxdxi0(2,2)-dxdxi0(1,2)*dxdxi0(2,1)
+        do kint = 1, n_points
+          call abq_UEL_2D_shapefunctions(xi0(1:2,kint),NNODE,N0,dN0dxi0)
+          dxdxi0 = matmul(coords(1:2,1:NNODE),dN0dxi0(1:NNODE,1:2))
+          det0 = dxdxi0(1,1)*dxdxi0(2,2)-dxdxi0(1,2)*dxdxi0(2,1)
 
-        call abq_UEL_2D_shapefunctions(xi(1:2,kint),NNODE,N,dNdxi)
-        dxdxi = matmul(coords(1:2,1:NNODE),dNdxi(1:NNODE,1:2))
-        call abq_inverse_LU(dxdxi,dxidx,2)
-        dNdx(1:NNODE,1:2) = matmul(dNdxi(1:NNODE,1:2),dxidx)
-        determinant = dxdxi(1,1)*dxdxi(2,2)-dxdxi(1,2)*dxdxi(2,1)
+          call abq_UEL_2D_shapefunctions(xi(1:2,kint),NNODE,N,dNdxi)
+          dxdxi = matmul(coords(1:2,1:NNODE),dNdxi(1:NNODE,1:2))
+          call abq_inverse_LU(dxdxi,dxidx,2)
+          dNdx(1:NNODE,1:2) = matmul(dNdxi(1:NNODE,1:2),dxidx)
+          determinant = dxdxi(1,1)*dxdxi(2,2)-dxdxi(1,2)*dxdxi(2,1)
 
-        B = 0.d0
-        B(1,1:2*NNODE-1:2) = dNdx(1:NNODE,1)
-        B(2,2:2*NNODE:2) = dNdx(1:NNODE,2)
-        B(4,1:2*NNODE-1:2) = dNdx(1:NNODE,2)
-        B(4,2:2*NNODE:2) = dNdx(1:NNODE,1)
-        B(1,2*NNODE+1) = (det0/determinant)*xi(1,kint)*dxidx(1,1)
-        B(1,2*NNODE+3) = (det0/determinant)*xi(2,kint)*dxidx(2,1)
-        B(2,2*NNODE+2) = (det0/determinant)*xi(1,kint)*dxidx(1,2)
-        B(2,2*NNODE+4) = (det0/determinant)*xi(2,kint)*dxidx(2,2)
-        B(4,2*NNODE+1) = (det0/determinant)*xi(1,kint)*dxidx(1,2)
-        B(4,2*NNODE+2) = (det0/determinant)*xi(1,kint)*dxidx(1,1)
-        B(4,2*NNODE+3) = (det0/determinant)*xi(2,kint)*dxidx(2,2)
-        B(4,2*NNODE+4) = (det0/determinant)*xi(2,kint)*dxidx(2,1)
+          B = 0.d0
+          B(1,1:2*NNODE-1:2) = dNdx(1:NNODE,1)
+          B(2,2:2*NNODE:2) = dNdx(1:NNODE,2)
+          B(4,1:2*NNODE-1:2) = dNdx(1:NNODE,2)
+          B(4,2:2*NNODE:2) = dNdx(1:NNODE,1)
+          B(1,2*NNODE+1) = (det0/determinant)*xi(1,kint)*dxidx(1,1)
+          B(1,2*NNODE+3) = (det0/determinant)*xi(2,kint)*dxidx(2,1)
+          B(2,2*NNODE+2) = (det0/determinant)*xi(1,kint)*dxidx(1,2)
+          B(2,2*NNODE+4) = (det0/determinant)*xi(2,kint)*dxidx(2,2)
+          B(4,2*NNODE+1) = (det0/determinant)*xi(1,kint)*dxidx(1,2)
+          B(4,2*NNODE+2) = (det0/determinant)*xi(1,kint)*dxidx(1,1)
+          B(4,2*NNODE+3) = (det0/determinant)*xi(2,kint)*dxidx(2,2)
+          B(4,2*NNODE+4) = (det0/determinant)*xi(2,kint)*dxidx(2,1)
 
-        ktemp = ktemp + matmul(transpose(B(1:4,1:2*NNODE+4)),
-     1   matmul(D,B(1:4,1:2*NNODE+4)))*w(kint)*determinant
+          ktemp = ktemp + matmul(transpose(B(1:4,1:2*NNODE+4)),
+     1     matmul(D,B(1:4,1:2*NNODE+4)))*w(kint)*determinant
 
-      end do
+        end do
 
 
     ! Process 2 : Calculate kuu, kaa, kua, kau
-      kuu(1:2*NNODE,1:2*NNODE) = ktemp(1:2*NNODE,1:2*NNODE)
-      kaa(1:4,1:4) = ktemp(2*NNODE+1:2*NNODE+4,2*NNODE+1:2*NNODE+4)
-      kua(1:2*NNODE,1:4) = ktemp(1:2*NNODE,2*NNODE+1:2*NNODE+4)
-      kau(1:4,1:2*NNODE) = ktemp(2*NNODE+1:2*NNODE+4,1:2*NNODE)
+        kuu(1:2*NNODE,1:2*NNODE) = ktemp(1:2*NNODE,1:2*NNODE)
+        kaa(1:4,1:4) = ktemp(2*NNODE+1:2*NNODE+4,2*NNODE+1:2*NNODE+4)
+        kua(1:2*NNODE,1:4) = ktemp(1:2*NNODE,2*NNODE+1:2*NNODE+4)
+        kau(1:4,1:2*NNODE) = ktemp(2*NNODE+1:2*NNODE+4,1:2*NNODE)
 
     ! Process 3 : Calculate the internal degrees of freedon alpha and set new DOF vector
-      call abq_inverse_LU(kaa,kaainv,4)
-      alpha = -1*matmul(kaainv,matmul(kau(1:4,1:2*NNODE),U(1:2*NNODE)))
-      Unew(1:2*NNODE) = U(1:2*NNODE)
-      Unew(2*NNODE+1:2*NNODE+4) = alpha(1:4)
+        call abq_inverse_LU(kaa,kaainv,4)
+        alpha = -1*matmul(kaainv,matmul(kau(1:4,1:2*NNODE),
+     1         U(1:2*NNODE)))
+        Unew(1:2*NNODE) = U(1:2*NNODE)
+        Unew(2*NNODE+1:2*NNODE+4) = alpha(1:4)
 
     ! Process 4 : Calculate rhs_temp
-      do kint = 1, n_points
-        call abq_UEL_2D_shapefunctions(xi0(1:2,kint),NNODE,N0,dN0dxi0)
-        dxdxi0 = matmul(coords(1:2,1:NNODE),dN0dxi0(1:NNODE,1:2))
-        det0 = dxdxi0(1,1)*dxdxi0(2,2)-dxdxi0(1,2)*dxdxi0(2,1)
+        do kint = 1, n_points
+          call abq_UEL_2D_shapefunctions(xi0(1:2,kint),NNODE,N0,dN0dxi0)
+          dxdxi0 = matmul(coords(1:2,1:NNODE),dN0dxi0(1:NNODE,1:2))
+          det0 = dxdxi0(1,1)*dxdxi0(2,2)-dxdxi0(1,2)*dxdxi0(2,1)
 
-        call abq_UEL_2D_shapefunctions(xi(1:2,kint),NNODE,N,dNdxi)
-        dxdxi = matmul(coords(1:2,1:NNODE),dNdxi(1:NNODE,1:2))
-        call abq_inverse_LU(dxdxi,dxidx,2)
-        dNdx(1:NNODE,1:2) = matmul(dNdxi(1:NNODE,1:2),dxidx)
-        determinant = dxdxi(1,1)*dxdxi(2,2)-dxdxi(1,2)*dxdxi(2,1)
+          call abq_UEL_2D_shapefunctions(xi(1:2,kint),NNODE,N,dNdxi)
+          dxdxi = matmul(coords(1:2,1:NNODE),dNdxi(1:NNODE,1:2))
+          call abq_inverse_LU(dxdxi,dxidx,2)
+          dNdx(1:NNODE,1:2) = matmul(dNdxi(1:NNODE,1:2),dxidx)
+          determinant = dxdxi(1,1)*dxdxi(2,2)-dxdxi(1,2)*dxdxi(2,1)
+          B = 0.d0
+          B(1,1:2*NNODE-1:2) = dNdx(1:NNODE,1)
+          B(2,2:2*NNODE:2) = dNdx(1:NNODE,2)
+          B(4,1:2*NNODE-1:2) = dNdx(1:NNODE,2)
+          B(4,2:2*NNODE:2) = dNdx(1:NNODE,1)
+          B(1,2*NNODE+1) = (det0/determinant)*xi(1,kint)*dxidx(1,1)
+          B(1,2*NNODE+3) = (det0/determinant)*xi(2,kint)*dxidx(2,1)
+          B(2,2*NNODE+2) = (det0/determinant)*xi(1,kint)*dxidx(1,2)
+          B(2,2*NNODE+4) = (det0/determinant)*xi(2,kint)*dxidx(2,2)
+          B(4,2*NNODE+1) = (det0/determinant)*xi(1,kint)*dxidx(1,2)
+          B(4,2*NNODE+2) = (det0/determinant)*xi(1,kint)*dxidx(1,1)
+          B(4,2*NNODE+3) = (det0/determinant)*xi(2,kint)*dxidx(2,2)
+          B(4,2*NNODE+4) = (det0/determinant)*xi(2,kint)*dxidx(2,1)
 
-        B = 0.d0
-        B(1,1:2*NNODE-1:2) = dNdx(1:NNODE,1)
-        B(2,2:2*NNODE:2) = dNdx(1:NNODE,2)
-        B(4,1:2*NNODE-1:2) = dNdx(1:NNODE,2)
-        B(4,2:2*NNODE:2) = dNdx(1:NNODE,1)
-        B(1,2*NNODE+1) = (det0/determinant)*xi(1,kint)*dxidx(1,1)
-        B(1,2*NNODE+3) = (det0/determinant)*xi(2,kint)*dxidx(2,1)
-        B(2,2*NNODE+2) = (det0/determinant)*xi(1,kint)*dxidx(1,2)
-        B(2,2*NNODE+4) = (det0/determinant)*xi(2,kint)*dxidx(2,2)
-        B(4,2*NNODE+1) = (det0/determinant)*xi(1,kint)*dxidx(1,2)
-        B(4,2*NNODE+2) = (det0/determinant)*xi(1,kint)*dxidx(1,1)
-        B(4,2*NNODE+3) = (det0/determinant)*xi(2,kint)*dxidx(2,2)
-        B(4,2*NNODE+4) = (det0/determinant)*xi(2,kint)*dxidx(2,1)
+          strain = matmul(B(1:4,1:2*NNODE+4),Unew(1:2*NNODE+4))
+          stress = matmul(D,strain)
+          rhs_temp(1:2*NNODE+4) = rhs_temp(1:2*NNODE+4)
+     1      - matmul(transpose(B(1:4,1:2*NNODE+4)),stress(1:4))*
+     2         w(kint)*determinant
 
-        strain = matmul(B(1:4,1:2*NNODE+4),Unew(1:2*NNODE+4))
-        stress = matmul(D,strain)
-        rhs_temp(1:2*NNODE+4) = rhs_temp(1:2*NNODE+4)
-     1    - matmul(transpose(B(1:4,1:2*NNODE+4)),stress(1:4))*
-     2     w(kint)*determinant
+          ENERGY(2) = ENERGY(2)
+     1     + 0.5D0*dot_product(stress,strain)*w(kint)           ! Store the elastic strain energy
 
-        ENERGY(2) = ENERGY(2)
-     1   + 0.5D0*dot_product(stress,strain)*w(kint)           ! Store the elastic strain energy
-
-        if (NSVARS>=n_points*4) then   ! Store stress at each integration point (if space was allocated to do so)
-            SVARS(4*kint-3:4*kint) = stress(1:4)
-        endif
-      end do
+          if (NSVARS>=n_points*4) then   ! Store stress at each integration point (if space was allocated to do so)
+              SVARS(4*kint-3:4*kint) = stress(1:4)
+          endif
+        end do
 
     ! Process 5 : Extract ru, ra
-      ru(1:2*NNODE) = rhs_temp(1:2*NNODE)
-      ra(1:4) = rhs_temp(2*NNODE+1:2*NNODE+4)
+        ru(1:2*NNODE) = rhs_temp(1:2*NNODE)
+        ra(1:4) = rhs_temp(2*NNODE+1:2*NNODE+4)
 
     ! Process 6 : Assemble the element stiffness and residual
-      AMATRX(1:2*NNODE,1:2*NNODE) = kuu(1:2*NNODE,1:2*NNODE)
-     1  -matmul(kua(1:2*NNODE,1:4),matmul(kaainv,kau(1:4,1:2*NNODE)))
+        AMATRX(1:2*NNODE,1:2*NNODE) = kuu(1:2*NNODE,1:2*NNODE)
+     1    -matmul(kua(1:2*NNODE,1:4),matmul(kaainv,kau(1:4,1:2*NNODE)))
 
-      RHS(1:2*NNODE,1) = ru(1:2*NNODE)
-     1 -matmul(kua(1:2*NNODE,1:4),matmul(kaainv,ra(1:4)))
+        RHS(1:2*NNODE,1) = ru(1:2*NNODE)
+     1   -matmul(kua(1:2*NNODE,1:4),matmul(kaainv,ra(1:4)))
 
-      PNEWDT = 1.d0          ! This leaves the timestep unchanged (ABAQUS will use its own algorithm to determine DTIME)
+        PNEWDT = 1.d0          ! This leaves the timestep unchanged (ABAQUS will use its own algorithm to determine DTIME)
     !
     !   Apply distributed loads
     !
@@ -285,7 +320,7 @@
     !   n specifies the face number, following the ABAQUS convention
     !
     !
-
+      endif
 
       return
 
