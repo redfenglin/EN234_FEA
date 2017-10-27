@@ -276,13 +276,16 @@
        Kb = (pt*(1.d0+e0)*exp(-(1.d0+e0)*evol/kappa)/(3.d0*kappa))
      1          -2.d0*G/3.d0
     
-       DDSDDE(1:6,1:6) = 0.d0
        STRESS(1:6) = 0.d0
-
+       DDSDDE(1:6,1:6) = 0.d0
 
        STRESS(1:3) = 2.d0*G*edev(1:3)
      1        + pt*(1.d0-exp(-(1.d0+e0)*evol/kappa))/3.d0
        STRESS(4:6) = 2.d0*G*edev(4:6)
+
+       forall(j=1:3) DDSDDE(j,j) = DDSDDE(j,j) + 2.d0*G
+       forall(j=4:6) DDSDDE(j,j) = DDSDDE(j,j) + G
+       DDSDDE(1:3,1:3) = DDSDDE(1:3,1:3) + Kb
 
 !       if (ee<e0) then
 !          se = s0*( dsqrt( (1.d0+n*n)/((n-1.d0)*(n-1.d0))
@@ -310,10 +313,6 @@
 !          DDSDDE(1:6,1:6) = 4.d0*(Et-Es)*spread(edev,dim=2,ncopies=6)*
 !     1                      spread(edev,dim=1,ncopies=6)/(9.d0*ee*ee)
 !       endif
-       forall(j=1:3) DDSDDE(j,j) = DDSDDE(j,j) + 2.d0*G
-       forall(j=4:6) DDSDDE(j,j) = DDSDDE(j,j) + G
-       DDSDDE(1:3,1:3) = DDSDDE(1:3,1:3) + Kb
-     
 
 !       forall(j=1:3) DDSDDE(j,j) = DDSDDE(j,j) + 2.d0*Es/3.d0
 !       forall(j=4:6) DDSDDE(j,j) = DDSDDE(j,j) + Es/3.d0
