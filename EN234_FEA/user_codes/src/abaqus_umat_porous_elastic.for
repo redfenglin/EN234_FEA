@@ -251,13 +251,13 @@
 !
 !     Local variables
 
-      double precision :: edev(6)
+!      double precision :: edev(6)
       double precision :: evol
 !      double precision :: se,ee
       double precision :: G,xnu,e0,pt !dsedee,Et,Es
-      double precision :: kappa,Kb
+      double precision :: kappa,Kb, NSTRESS(6)
 
-      integer :: j
+      integer :: i,j
 
        G = PROPS(1)
        xnu = PROPS(2)
@@ -267,11 +267,11 @@
        kappa = pt*(1.d0-2.d0*xnu)*(1.d0+e0)/(1.d0+xnu)
 
        evol = sum(STRAN(1:3)+DSTRAN(1:3))
-       edev(1:3) = STRAN(1:3)+DSTRAN(1:3) - evol/3.d0
-       edev(4:6) = 0.5d0*(STRAN(4:6)+DSTRAN(4:6))
+!       edev(1:3) = STRAN(1:3)+DSTRAN(1:3) - evol/3.d0
+!       edev(4:6) = 0.5d0*(STRAN(4:6)+DSTRAN(4:6))
 
-       ee = dsqrt(dot_product(edev(1:3),edev(1:3)) +
-     1               2.d0*dot_product(edev(4:6),edev(4:6)))/dsqrt(1.5d0)
+!       ee = dsqrt(dot_product(edev(1:3),edev(1:3)) +
+!     1               2.d0*dot_product(edev(4:6),edev(4:6)))/dsqrt(1.5d0)
 
        Kb = (pt*(1.d0+e0)*exp(-(1.d0+e0)*evol/kappa)/(3.d0*kappa))
      1          -2.d0*G/3.d0
@@ -279,13 +279,22 @@
        STRESS(1:6) = 0.d0
        DDSDDE(1:6,1:6) = 0.d0
 
-       STRESS(1:3) = 2.d0*G*edev(1:3)
-     1        + pt*(1.d0-exp(-(1.d0+e0)*evol/kappa))/3.d0
-       STRESS(4:6) = 2.d0*G*edev(4:6)
+!       STRESS(1:3) = 2.d0*G*edev(1:3)
+!       1        + pt*(1.d0-exp(-(1.d0+e0)*evol/kappa))/3.d0
+!         STRESS(4:6) = 2.d0*G*edev(4:6)
 
        forall(j=1:3) DDSDDE(j,j) = DDSDDE(j,j) + 2.d0*G
        forall(j=4:6) DDSDDE(j,j) = DDSDDE(j,j) + G
        DDSDDE(1:3,1:3) = DDSDDE(1:3,1:3) + Kb
+
+       do i = 1,6
+         do j = 1,6
+             NSTRESS(i) = DDSDDE(i,j)*DSTRAN(j)
+         end do
+       end do
+
+       forall(j=1:6) STRESS(j) = STRESS(j)+NSTRESS(j)
+
 
 !       if (ee<e0) then
 !          se = s0*( dsqrt( (1.d0+n*n)/((n-1.d0)*(n-1.d0))
