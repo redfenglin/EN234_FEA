@@ -1,4 +1,4 @@
-subroutine user_print_cahn(n_steps)
+subroutine user_print(n_steps)
   use Types
   use ParamIO
   use Globals, only : TIME, DTIME
@@ -123,7 +123,7 @@ subroutine user_print_cahn(n_steps)
 
 
 
-end subroutine user_print_cahn
+end subroutine user_print
 
 
 subroutine compute_element_volume_average_3D(lmn,vol_averaged_strain,vol_averaged_state_vars,length_output_array, &
