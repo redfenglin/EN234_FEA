@@ -522,7 +522,7 @@ subroutine check_stiffness(element_flag)
         else
             write(IOW,'(//A//)') ' Stiffness matrix is consistent with residual '
         endif
-	 
+
         err = 0.D0
         do i = 1,icount
             do j = 1,icount
