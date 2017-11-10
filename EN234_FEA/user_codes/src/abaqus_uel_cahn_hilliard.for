@@ -101,12 +101,12 @@
       double precision  ::  xibar(2,9)                       ! Area integration points for the concentration fields
       double precision  ::  w(9)                             ! Area integration weights for the displacement fields
       double precision  ::  wbar(9)                          ! Area intergraion weights for the concentration fields
-      double precision  ::  N(8)                             ! 2D shape functions for the displacement fields
-      double precision  ::  Nbar(4)                          ! 2D shape functions for the concentration field
-      double precision  ::  dNdxi(8,2)                       ! 2D shape function derivatives for the displacement fields
-      double precision  ::  dNbardxi(4,2)                    ! 2D shape function derivatives for the concentration field
-      double precision  ::  dNdx(8,2)                        ! Spatial derivatives for the displacement fields
-      double precision  ::  dNbardx(4,2)                     ! Spatial derivatives for the concentration field
+      double precision  ::  N(9)                             ! 2D shape functions for the displacement fields
+      double precision  ::  Nbar(9)                          ! 2D shape functions for the concentration field
+      double precision  ::  dNdxi(9,2)                       ! 2D shape function derivatives for the displacement fields
+      double precision  ::  dNbardxi(9,2)                    ! 2D shape function derivatives for the concentration field
+      double precision  ::  dNdx(9,2)                        ! Spatial derivatives for the displacement fields
+      double precision  ::  dNbardx(9,2)                     ! Spatial derivatives for the concentration field
       double precision  ::  dxdxi(2,2)                       ! Derivative of spatial coords wrt normalized coords for the displacement fields
       double precision  ::  dxdxibar(2,2)                    ! Derivative of spatial coords wrt normalized coords for the concentrate field
 
@@ -174,6 +174,7 @@
 
       do kint = 1, n_points
         call abq_UEL_2D_shapefunctions(xi(1:2,kint),NNODE,N,dNdxi)
+
         dxdxi = matmul(coords(1:2,1:NNODE),dNdxi(1:NNODE,1:2))
         det = dxdxi(1,1)*dxdxi(2,2)-dxdxi(1,2)*dxdxi(2,1)
         dxidx(1,1:2) =  [ dxdxi(2,2),-dxdxi(1,2)]/det
@@ -190,6 +191,9 @@
         dxidxbar(2,1:2) =  [-dxdxibar(2,1),dxdxibar(1,1) ]/detbar
         dNbardx(1:NNODE_Bar,1:2) = matmul(dNbardxi(1:NNODE_Bar,1:2)
      1                                                   ,dxidxbar)
+
+
+
 
       ! get a modified B matrtix
         B = 0.d0
@@ -252,6 +256,8 @@
         B(9,12) = dNbardx(3,2)
         B(9,16) = dNbardx(4,2)
 
+
+
         sol = 0.d0
         dsol = 0.d0
         sol(1:9) = matmul(B(1:9,1:24),U(1:24))
@@ -279,6 +285,7 @@
         q(7) = -kappa*sol(9)
         q(8) = Dcoef*(sol(6)+(theta-1.d0)*dsol(6))
         q(9) = Dcoef*(sol(7)+(theta-1.d0)*dsol(7))
+
 
       ! get a D matrix
         D = 0.d0
