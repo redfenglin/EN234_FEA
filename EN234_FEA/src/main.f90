@@ -115,15 +115,15 @@ program en234fea
 
 
 !   Homework 9 - McCormick model with 1 element
-   infil = 'input_files/Abaqus_vumat_McCormick.in'
-   outfil = 'Output_files/Abaqus_vumat_McCormick.out'
+!   infil = 'input_files/Abaqus_vumat_McCormick.in'
+!   outfil = 'Output_files/Abaqus_vumat_McCormick.out'
 
 !    infil = 'input_files/Abaqus_vumat_viscoplastic.in'
 !    outfil = 'Output_files/Abaqus_vmat_viscoplastic.out'
 
 !   Homework 10 - Continuum beam element solution to end loaded cantilever beam
-!   infil = 'input_files/Abaqus_uel_continuum_beam.in'
-!   outfil = 'Output_files/Abaqus_uel_continuum_beam.out'
+   infil = 'input_files/Abaqus_uel_continuum_beam.in'
+   outfil = 'Output_files/Abaqus_uel_continuum_beam.out'
 
    infil = trim(root_directory)//trim(infil)
    outfil = trim(root_directory)//trim(outfil)
